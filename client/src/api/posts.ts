@@ -11,60 +11,46 @@ export type Post = {
   createdAt: string;
 };
 
-// Description: Get all posts
-// Endpoint: GET /api/posts
-// Request: {}
-// Response: { posts: Post[] }
-export const getPosts = () => {
-  return new Promise<{ posts: Post[] }>((resolve) => {
-    setTimeout(() => {
-      resolve({
-        posts: [
-          {
-            _id: '1',
-            caption: 'Beautiful sunset at the beach',
-            imageUrl: 'https://source.unsplash.com/random/800x600?sunset',
-            author: {
-              name: 'John Doe',
-              avatar: 'https://source.unsplash.com/random/100x100?face',
-            },
-            createdAt: '2024-03-20T10:00:00.000Z',
-          },
-          {
-            _id: '2',
-            caption: 'Morning coffee and code',
-            imageUrl: 'https://source.unsplash.com/random/800x600?coffee',
-            author: {
-              name: 'Jane Smith',
-              avatar: 'https://source.unsplash.com/random/100x100?portrait',
-            },
-            createdAt: '2024-03-19T15:30:00.000Z',
-          },
-        ],
-      });
-    }, 500);
-  });
-};
-
 // Description: Create a new post
 // Endpoint: POST /api/posts
 // Request: FormData with 'image' file and 'caption' text
 // Response: { post: Post }
-export const createPost = (data: FormData) => {
-  return new Promise<{ post: Post }>((resolve) => {
-    setTimeout(() => {
-      resolve({
-        post: {
-          _id: Math.random().toString(36).substr(2, 9),
-          caption: data.get('caption') as string,
-          imageUrl: 'https://source.unsplash.com/random/800x600',
-          author: {
-            name: 'Current User',
-            avatar: 'https://source.unsplash.com/random/100x100',
-          },
-          createdAt: new Date().toISOString(),
-        },
-      });
-    }, 500);
-  });
+export const createPost = async (data: FormData) => {
+  try {
+    const response = await api.post('/api/posts', data, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    // Check specifically for file size error
+    if (error?.response?.data?.error?.includes('File too large')) {
+      throw new Error('Image file size must be less than 2MB');
+    }
+    throw new Error(error?.response?.data?.error || 'Image file size must be less than 2MB');
+  }
+};
+
+// Description: Get all posts with pagination
+// Endpoint: GET /api/posts
+// Request Query Parameters: { page?: number, limit?: number }
+// Response: {
+//   posts: Post[],
+//   pagination: {
+//     total: number,
+//     page: number,
+//     limit: number,
+//     pages: number
+//   }
+// }
+export const getPosts = async (page = 1, limit = 10) => {
+  try {
+    const response = await api.get('/api/posts', {
+      params: { page, limit }
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error(error?.response?.data?.error || error.message);
+  }
 };

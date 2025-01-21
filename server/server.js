@@ -42,6 +42,8 @@ app.use(basicRoutes);
 app.use('/api/auth', authRoutes);
 // Task Routes
 app.use('/api/tasks', require('./routes/taskRoutes'));
+// Post Routes
+app.use('/api/posts', require('./routes/postRoutes'));
 
 // If no routes handled the request, it's a 404
 app.use((req, res, next) => {

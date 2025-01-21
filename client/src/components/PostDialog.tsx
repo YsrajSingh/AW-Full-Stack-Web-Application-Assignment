@@ -32,15 +32,29 @@ export function PostDialog({ open, onOpenChange, onSuccess }: PostDialogProps) {
 
   const onSubmit = async (data: FormData) => {
     try {
+      console.log('Form data received:', {
+        caption: data.caption,
+        imageFile: data.image[0] ? {
+          name: data.image[0].name,
+          type: data.image[0].type,
+          size: data.image[0].size
+        } : null
+      });
       setIsUploading(true);
       const formData = new FormData();
       formData.append('caption', data.caption);
       formData.append('image', data.image[0]);
 
+      console.log('FormData entries:');
+      for (let pair of formData.entries()) {
+        console.log(pair[0], pair[1]);
+      }
+
       const { post } = await createPost(formData);
       onSuccess(post);
       reset();
     } catch (error) {
+      console.error('Error in onSubmit:', error);
       toast({
         variant: 'destructive',
         title: 'Error',

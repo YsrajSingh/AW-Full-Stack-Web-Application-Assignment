@@ -9,22 +9,42 @@ import { useToast } from '@/hooks/useToast';
 export function Feed() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
     loadPosts();
   }, []);
 
-  const loadPosts = async () => {
+  const loadPosts = async (newPage = 1) => {
     try {
-      const { posts } = await getPosts();
-      setPosts(posts);
+      setLoading(true);
+      const { posts: newPosts, pagination } = await getPosts(newPage);
+
+      if (newPage === 1) {
+        setPosts(newPosts);
+      } else {
+        setPosts(prev => [...prev, ...newPosts]);
+      }
+
+      setHasMore(pagination.page < pagination.pages);
+      setPage(pagination.page);
     } catch (error) {
       toast({
         variant: 'destructive',
         title: 'Error',
         description: error.message,
       });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadMore = () => {
+    if (!loading && hasMore) {
+      loadPosts(page + 1);
     }
   };
 
@@ -47,6 +67,18 @@ export function Feed() {
           <PostCard key={post._id} post={post} />
         ))}
       </div>
+
+      {hasMore && (
+        <div className="flex justify-center mt-4">
+          <Button
+            variant="outline"
+            onClick={loadMore}
+            disabled={loading}
+          >
+            {loading ? 'Loading...' : 'Load More'}
+          </Button>
+        </div>
+      )}
 
       <PostDialog
         open={dialogOpen}
