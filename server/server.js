@@ -40,6 +40,8 @@ app.on("error", (error) => {
 app.use(basicRoutes);
 // Authentication Routes
 app.use('/api/auth', authRoutes);
+// Task Routes
+app.use('/api/tasks', require('./routes/taskRoutes'));
 
 // If no routes handled the request, it's a 404
 app.use((req, res, next) => {

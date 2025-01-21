@@ -40,17 +40,23 @@ export function TaskBoard() {
     const taskId = active.id as string;
     const newStatus = over.id as Task['status'];
 
-    try {
-      await updateTaskStatus(taskId, newStatus);
-      setTasks(tasks.map(task =>
-        task._id === taskId ? { ...task, status: newStatus } : task
-      ));
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: error.message,
-      });
+    // Find the current task
+    const currentTask = tasks.find(task => task._id === taskId);
+
+    // Only update if the status actually changed
+    if (currentTask && currentTask.status !== newStatus) {
+      try {
+        await updateTaskStatus(taskId, newStatus);
+        setTasks(tasks.map(task =>
+          task._id === taskId ? { ...task, status: newStatus } : task
+        ));
+      } catch (error) {
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: error.message,
+        });
+      }
     }
   };
 
@@ -72,18 +78,27 @@ export function TaskBoard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <TaskColumn
             title="Pending"
-            tasks={tasks.filter(task => task.status === 'pending')}
-            status="pending"
+            tasks={tasks.filter(task => task.status === 'Pending')}
+            status="Pending"
+            onTaskDelete={(taskId) => {
+              setTasks(tasks.filter(task => task._id !== taskId));
+            }}
           />
           <TaskColumn
             title="Completed"
-            tasks={tasks.filter(task => task.status === 'completed')}
-            status="completed"
+            tasks={tasks.filter(task => task.status === 'Completed')}
+            status="Completed"
+            onTaskDelete={(taskId) => {
+              setTasks(tasks.filter(task => task._id !== taskId));
+            }}
           />
           <TaskColumn
             title="Done"
-            tasks={tasks.filter(task => task.status === 'done')}
-            status="done"
+            tasks={tasks.filter(task => task.status === 'Done')}
+            status="Done"
+            onTaskDelete={(taskId) => {
+              setTasks(tasks.filter(task => task._id !== taskId));
+            }}
           />
         </div>
       </DndContext>

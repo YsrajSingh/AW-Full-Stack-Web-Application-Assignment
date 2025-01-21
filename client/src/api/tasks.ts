@@ -4,7 +4,7 @@ export type Task = {
   _id: string;
   name: string;
   description: string;
-  status: 'pending' | 'completed' | 'done';
+  status: 'Pending' | 'Completed' | 'Done';
   createdAt: string;
 };
 
@@ -12,85 +12,50 @@ export type Task = {
 // Endpoint: GET /api/tasks
 // Request: {}
 // Response: { tasks: Task[] }
-export const getTasks = () => {
-  return new Promise<{ tasks: Task[] }>((resolve) => {
-    setTimeout(() => {
-      resolve({
-        tasks: [
-          {
-            _id: '1',
-            name: 'Create landing page',
-            description: 'Design and implement the landing page',
-            status: 'pending',
-            createdAt: '2024-03-20T10:00:00.000Z',
-          },
-          {
-            _id: '2',
-            name: 'Implement authentication',
-            description: 'Add login and registration functionality',
-            status: 'completed',
-            createdAt: '2024-03-19T15:30:00.000Z',
-          },
-          {
-            _id: '3',
-            name: 'Set up database',
-            description: 'Configure MongoDB and create schemas',
-            status: 'done',
-            createdAt: '2024-03-18T09:15:00.000Z',
-          },
-        ],
-      });
-    }, 500);
-  });
+export const getTasks = async () => {
+  try {
+    const response = await api.get('/api/tasks');
+    return response.data;
+  } catch (error) {
+    throw new Error(error?.response?.data?.error || error.message);
+  }
 };
 
 // Description: Create a new task
 // Endpoint: POST /api/tasks
 // Request: { name: string, description: string }
 // Response: { task: Task }
-export const createTask = (data: { name: string; description: string }) => {
-  return new Promise<{ task: Task }>((resolve) => {
-    setTimeout(() => {
-      resolve({
-        task: {
-          _id: Math.random().toString(36).substr(2, 9),
-          ...data,
-          status: 'pending',
-          createdAt: new Date().toISOString(),
-        },
-      });
-    }, 500);
-  });
+export const createTask = async (data: { name: string; description: string }) => {
+  try {
+    const response = await api.post('/api/tasks', data);
+    return response.data;
+  } catch (error) {
+    throw new Error(error?.response?.data?.error || error.message);
+  }
 };
 
 // Description: Update task status
-// Endpoint: PATCH /api/tasks/:id
-// Request: { status: 'pending' | 'completed' | 'done' }
+// Endpoint: PATCH /api/tasks/:id/status
+// Request: { status: 'Pending' | 'Completed' | 'Done' }
 // Response: { task: Task }
-export const updateTaskStatus = (id: string, status: Task['status']) => {
-  return new Promise<{ task: Task }>((resolve) => {
-    setTimeout(() => {
-      resolve({
-        task: {
-          _id: id,
-          name: 'Sample Task',
-          description: 'Sample Description',
-          status,
-          createdAt: new Date().toISOString(),
-        },
-      });
-    }, 500);
-  });
+export const updateTaskStatus = async (id: string, status: Task['status']) => {
+  try {
+    const response = await api.patch(`/api/tasks/${id}/status`, { status });
+    return response.data;
+  } catch (error) {
+    throw new Error(error?.response?.data?.error || error.message);
+  }
 };
 
 // Description: Delete a task
 // Endpoint: DELETE /api/tasks/:id
 // Request: {}
 // Response: { success: boolean }
-export const deleteTask = (id: string) => {
-  return new Promise<{ success: boolean }>((resolve) => {
-    setTimeout(() => {
-      resolve({ success: true });
-    }, 500);
-  });
+export const deleteTask = async (id: string) => {
+  try {
+    const response = await api.delete(`/api/tasks/${id}`);
+    return response.data;
+  } catch (error) {
+    throw new Error(error?.response?.data?.error || error.message);
+  }
 };

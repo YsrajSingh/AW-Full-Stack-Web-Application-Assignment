@@ -42,16 +42,25 @@ router.post('/register', async (req, res, next) => {
   }
 });
 
-router.post('/logout', async (req, res) => {
-  const { email } = req.body;
+router.post('/logout', requireUser, async (req, res) => {
+  try {
+    console.log(`Attempting to logout user: ${req.user._id}`);
+    const user = await UserService.get(req.user._id);
+    if (!user) {
+      console.error(`User not found for ID: ${req.user._id}`);
+      return res.status(404).json({ message: 'User not found' });
+    }
 
-  const user = await User.findOne({ email });
-  if (user) {
+    // Invalidate refresh token
     user.refreshToken = null;
     await user.save();
-  }
+    console.log(`Successfully logged out user: ${req.user._id}`);
 
-  res.status(200).json({ message: 'User logged out successfully.' });
+    res.status(200).json({ success: true, message: 'Logged out successfully' });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({ message: error.message });
+  }
 });
 
 router.post('/refresh', async (req, res) => {
