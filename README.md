@@ -1,4 +1,3 @@
-```markdown
 # Affworld Assignment
 
 Affworld Assignment is a web application designed to provide basic user authentication, a task management system, and a feed for users to post content. The project is evaluated based on functionality, design, and code quality.
@@ -107,4 +106,3 @@ The project is built using the MERN stack (MongoDB, Express.js, React.js, Node.j
 
 The project is proprietary (not open source).  
 Copyright (c) 2024.
-```
