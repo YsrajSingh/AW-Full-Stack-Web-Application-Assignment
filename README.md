@@ -1,6 +1,6 @@
-# Affworld Assignment
+# Full Stack Web Application
 
-Affworld Assignment is a web application designed to provide basic user authentication, a task management system, and a feed for users to post content. The project is evaluated based on functionality, design, and code quality.
+Full Stack Web Application is a web application designed to provide basic user authentication, a task management system, and a feed for users to post content. The project is evaluated based on functionality, design, and code quality.
 
 ## Overview
 
@@ -50,8 +50,8 @@ The project is built using the MERN stack (MongoDB, Express.js, React.js, Node.j
 
 1. **Clone the repository:**
    ```sh
-   git clone <repository-url>
-   cd affworld-assignment
+   git clone https://github.com/YsrajSingh/AW-Full-Stack-Web-Application-Assignment.git
+   cd AW-Full-Stack-Web-Application-Assignment
    ```
 
 2. **Install dependencies:**
