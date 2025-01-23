@@ -35,6 +35,13 @@ const schema = new mongoose.Schema({
     index: true,
     default: () => randomUUID(),
   },
+  passwordResetToken: {
+    type: String,
+    index: true
+  },
+  passwordResetExpires: {
+    type: Date
+  }
 }, {
   versionKey: false,
 });

@@ -1,4 +1,5 @@
 const { randomUUID } = require('crypto');
+const crypto = require('crypto');
 
 const User = require('../models/User.js');
 const { generatePasswordHash, validatePassword } = require('../utils/password.js');
@@ -99,6 +100,67 @@ class UserService {
       return user;
     } catch (err) {
       throw new Error(`Database error while setting user password: ${err}`);
+    }
+  }
+
+  static async createPasswordResetToken(email) {
+    try {
+      const user = await this.getByEmail(email);
+      if (!user) {
+        throw new Error('No user found with this email address');
+      }
+
+      console.log(`Generating password reset token for user: ${email}`);
+
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      user.passwordResetToken = crypto
+        .createHash('sha256')
+        .update(resetToken)
+        .digest('hex');
+      user.passwordResetExpires = Date.now() + 30 * 60 * 1000; // 30 minutes
+
+      await user.save();
+      console.log(`Password reset token generated successfully for user: ${email}`);
+      
+      return resetToken;
+    } catch (err) {
+      console.error('Error creating password reset token:', err);
+      throw new Error(`Error creating password reset token: ${err.stack}`);
+    }
+  }
+
+  static async resetPassword(token, newPassword) {
+    try {
+      console.log('Attempting to reset password with token');
+      
+      const hashedToken = crypto
+        .createHash('sha256')
+        .update(token)
+        .digest('hex');
+
+      const user = await User.findOne({
+        passwordResetToken: hashedToken,
+        passwordResetExpires: { $gt: Date.now() }
+      });
+
+      if (!user) {
+        console.error('Invalid or expired password reset token');
+        throw new Error('Token is invalid or has expired');
+      }
+
+      console.log(`Resetting password for user: ${user.email}`);
+      
+      await this.setPassword(user, newPassword);
+      user.passwordResetToken = undefined;
+      user.passwordResetExpires = undefined;
+      await user.save();
+
+      console.log(`Password reset successful for user: ${user.email}`);
+      
+      return user;
+    } catch (err) {
+      console.error('Error resetting password:', err);
+      throw new Error(`Error resetting password: ${err.stack}`);
     }
   }
 }

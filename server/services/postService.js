@@ -15,14 +15,14 @@ class PostService {
       await post.save();
 
       const populatedPost = await Post.findById(post._id)
-        .populate('author', 'name')
+        .populate('author', 'email')
         .lean();
 
       return {
         ...populatedPost,
         author: {
-          name: populatedPost.author.name,
-          avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(populatedPost.author.name)}`,
+          name: populatedPost.author.email,
+          avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(populatedPost.author.email)}`,
         },
       };
     } catch (error) {
@@ -45,7 +45,7 @@ class PostService {
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
-        .populate('author', 'name')
+        .populate('author', 'email')
         .lean();
 
       console.log(`Found ${posts.length} posts`);
@@ -54,13 +54,12 @@ class PostService {
       console.log(`Total posts in database: ${total}`);
 
       const formattedPosts = posts.map(post => {
-        // Ensure we always have author data
-        const authorName = post.author ? post.author.name : 'Unknown User';
+        const authorEmail = post.author ? post.author.email : 'Unknown User';
         return {
           ...post,
           author: {
-            name: authorName,
-            avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(authorName)}`
+            name: authorEmail,
+            avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(authorEmail)}`
           },
           isOwner: userId && post.author && post.author._id.toString() === userId.toString()
         };

@@ -87,13 +87,20 @@ export function Login() {
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="flex justify-center">
+        <CardFooter className="flex flex-col gap-2">
           <Button
             variant="link"
             className="text-sm text-muted-foreground"
             onClick={() => navigate("/register")}
           >
             Don't have an account? Sign up
+          </Button>
+          <Button
+            variant="link"
+            className="text-sm text-muted-foreground"
+            onClick={() => navigate("/forgot-password")}
+          >
+            Forgot your password?
           </Button>
         </CardFooter>
       </Card>
