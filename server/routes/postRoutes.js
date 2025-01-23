@@ -11,12 +11,14 @@ const upload = multer({
   },
 });
 
-router.get('/', async (req, res) => {
+router.get('/', requireUser, async (req, res) => {
   try {
-    const { page = 1, limit = 10 } = req.query;
+    const { page = 1, limit = 10, filter = 'all' } = req.query;
     const result = await PostService.list({
       page: parseInt(page),
-      limit: parseInt(limit)
+      limit: parseInt(limit),
+      userId: req.user.id,
+      filter
     });
     res.json(result);
   } catch (error) {
@@ -50,6 +52,16 @@ router.post('/', requireUser, upload.single('image'), async (req, res) => {
     res.status(201).json({ post });
   } catch (error) {
     console.error('Error in create post route:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.delete('/:id', requireUser, async (req, res) => {
+  try {
+    await PostService.delete(req.params.id, req.user.id);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error in delete post route:', error);
     res.status(500).json({ error: error.message });
   }
 });

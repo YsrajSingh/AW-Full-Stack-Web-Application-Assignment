@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig, AxiosError } from 'axios';
 
-const backendURL = '';
+const backendURL = 'http://localhost:3000';
 const api = axios.create({
   baseURL: backendURL,
   headers: {
@@ -20,6 +20,10 @@ api.interceptors.request.use(
     }
     if (accessToken && config.headers) {
       config.headers.Authorization = `Bearer ${accessToken}`;
+      // Log request headers for debugging
+      console.log("Request headers:", {
+        Authorization: `Bearer ${accessToken}`.substring(0, 50) + "..."
+      });
     }
     return config;
   },

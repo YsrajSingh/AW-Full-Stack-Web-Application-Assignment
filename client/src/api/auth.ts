@@ -7,6 +7,20 @@ import api from './api';
 export const login = async (email: string, password: string) => {
   try {
     const response = await api.post('/api/auth/login', { email, password });
+    
+    console.log("Token lengths:", {
+      accessTokenLength: response.data.accessToken.length,
+      refreshTokenLength: response.data.refreshToken?.length
+    });
+
+    localStorage.setItem('accessToken', response.data.accessToken);
+    localStorage.setItem('refreshToken', response.data.refreshToken);
+
+    console.log("Stored token lengths:", {
+      accessTokenLength: localStorage.getItem('accessToken')?.length,
+      refreshTokenLength: localStorage.getItem('refreshToken')?.length
+    });
+
     return response.data;
   } catch (error) {
     console.error('Login error:', error);

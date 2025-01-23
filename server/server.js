@@ -21,7 +21,14 @@ app.enable('json spaces');
 // We want to be consistent with URL paths, so we enable strict routing
 app.enable('strict routing');
 
-app.use(cors({}));
+// Add CORS configuration before other middleware
+app.use(cors({
+  origin: '*',
+  methods: '*',
+  allowedHeaders: '*',
+  credentials: true
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

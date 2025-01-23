@@ -9,6 +9,7 @@ export type Post = {
     avatar: string;
   };
   createdAt: string;
+  isOwner: boolean;
 };
 
 // Description: Create a new post
@@ -24,17 +25,16 @@ export const createPost = async (data: FormData) => {
     });
     return response.data;
   } catch (error) {
-    // Check specifically for file size error
     if (error?.response?.data?.error?.includes('File too large')) {
-      throw new Error('Image file size must be less than 2MB');
+      throw new Error('Image file size must be less than 5MB');
     }
-    throw new Error(error?.response?.data?.error || 'Image file size must be less than 2MB');
+    throw new Error(error?.response?.data?.error || error.message);
   }
 };
 
-// Description: Get all posts with pagination
+// Description: Get all posts with pagination and filtering
 // Endpoint: GET /api/posts
-// Request Query Parameters: { page?: number, limit?: number }
+// Request Query Parameters: { page?: number, limit?: number, filter?: 'all' | 'my' }
 // Response: {
 //   posts: Post[],
 //   pagination: {
@@ -44,11 +44,23 @@ export const createPost = async (data: FormData) => {
 //     pages: number
 //   }
 // }
-export const getPosts = async (page = 1, limit = 10) => {
+export const getPosts = async (page = 1, limit = 10, filter: 'all' | 'my' = 'all') => {
   try {
     const response = await api.get('/api/posts', {
-      params: { page, limit }
+      params: { page, limit, filter }
     });
+    return response.data;
+  } catch (error) {
+    throw new Error(error?.response?.data?.error || error.message);
+  }
+};
+
+// Description: Delete a post
+// Endpoint: DELETE /api/posts/:id
+// Response: { success: true }
+export const deletePost = async (postId: string) => {
+  try {
+    const response = await api.delete(`/api/posts/${postId}`);
     return response.data;
   } catch (error) {
     throw new Error(error?.response?.data?.error || error.message);

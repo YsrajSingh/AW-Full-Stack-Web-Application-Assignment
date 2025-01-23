@@ -31,12 +31,17 @@ class PostService {
     }
   }
 
-  static async list({ page = 1, limit = 10 }) {
+  static async list({ page = 1, limit = 10, userId = null, filter = 'all' }) {
     try {
       console.log(`Fetching posts for page ${page} with limit ${limit}`);
       const skip = (page - 1) * limit;
 
-      const posts = await Post.find()
+      let query = {};
+      if (filter === 'my') {
+        query.author = userId;
+      }
+
+      const posts = await Post.find(query)
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
@@ -45,20 +50,23 @@ class PostService {
 
       console.log(`Found ${posts.length} posts`);
 
-      const total = await Post.countDocuments();
+      const total = await Post.countDocuments(query);
       console.log(`Total posts in database: ${total}`);
 
-      const formattedPosts = posts.map(post => ({
-        ...post,
-        author: {
-          name: post.author?.name || 'Unknown User',
-          avatar: post.author?.name
-            ? `https://ui-avatars.com/api/?name=${encodeURIComponent(post.author.name)}`
-            : `https://ui-avatars.com/api/?name=Unknown`
-        }
-      }));
+      const formattedPosts = posts.map(post => {
+        // Ensure we always have author data
+        const authorName = post.author ? post.author.name : 'Unknown User';
+        return {
+          ...post,
+          author: {
+            name: authorName,
+            avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(authorName)}`
+          },
+          isOwner: userId && post.author && post.author._id.toString() === userId.toString()
+        };
+      });
 
-      const paginationData = {
+      return {
         posts: formattedPosts,
         pagination: {
           total,
@@ -67,12 +75,25 @@ class PostService {
           pages: Math.ceil(total / limit)
         }
       };
-
-      console.log(`Returning page ${page} of ${Math.ceil(total / limit)} total pages`);
-      return paginationData;
     } catch (error) {
       console.error('Error listing posts:', error);
       throw new Error('Failed to fetch posts');
+    }
+  }
+
+  static async delete(postId, userId) {
+    try {
+      const post = await Post.findOne({ _id: postId, author: userId });
+
+      if (!post) {
+        throw new Error('Post not found or you do not have permission to delete it');
+      }
+
+      await post.deleteOne();
+      return { success: true };
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      throw error;
     }
   }
 }

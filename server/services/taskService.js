@@ -1,14 +1,15 @@
 const Task = require('../models/Task');
 
 class TaskService {
-  static async create(taskData) {
+  static async create(taskData, userId) {
     try {
-      console.log(`Creating new task with name: ${taskData.name}`);
+      console.log(`Creating new task with name: ${taskData.name} for user: ${userId}`);
 
       const task = new Task({
         name: taskData.name,
         description: taskData.description,
-        status: 'Pending' // Default status for new tasks
+        status: 'Pending',
+        userId
       });
 
       await task.save();
@@ -21,10 +22,10 @@ class TaskService {
     }
   }
 
-  static async list() {
+  static async list(userId) {
     try {
-      console.log('Fetching all tasks');
-      const tasks = await Task.find({}).sort({ createdAt: -1 });
+      console.log(`Fetching tasks for user: ${userId}`);
+      const tasks = await Task.find({ userId }).sort({ createdAt: -1 });
       console.log(`Successfully fetched ${tasks.length} tasks`);
       return tasks;
     } catch (error) {
@@ -33,13 +34,13 @@ class TaskService {
     }
   }
 
-  static async updateStatus(taskId, status) {
+  static async updateStatus(taskId, status, userId) {
     try {
       console.log(`Updating task ${taskId} status to: ${status}`);
 
-      const task = await Task.findById(taskId);
+      const task = await Task.findOne({ _id: taskId, userId });
       if (!task) {
-        throw new Error('Task not found');
+        throw new Error('Task not found or unauthorized');
       }
 
       task.status = status;
@@ -53,13 +54,13 @@ class TaskService {
     }
   }
 
-  static async delete(taskId) {
+  static async delete(taskId, userId) {
     try {
       console.log(`Deleting task with ID: ${taskId}`);
 
-      const task = await Task.findByIdAndDelete(taskId);
+      const task = await Task.findOneAndDelete({ _id: taskId, userId });
       if (!task) {
-        throw new Error('Task not found');
+        throw new Error('Task not found or unauthorized');
       }
 
       console.log(`Successfully deleted task ${taskId}`);

@@ -35,22 +35,30 @@ export function TaskBoard() {
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
+    console.log('Drag end event:', {
+      activeId: active.id,
+      overId: over?.id,
+      activeData: active.data,
+      overData: over?.data
+    });
+
     if (!over) return;
 
     const taskId = active.id as string;
     const newStatus = over.id as Task['status'];
 
-    // Find the current task
     const currentTask = tasks.find(task => task._id === taskId);
+    console.log('Current task:', currentTask);
 
-    // Only update if the status actually changed
     if (currentTask && currentTask.status !== newStatus) {
       try {
+        console.log(`Updating task ${taskId} from ${currentTask.status} to ${newStatus}`);
         await updateTaskStatus(taskId, newStatus);
         setTasks(tasks.map(task =>
           task._id === taskId ? { ...task, status: newStatus } : task
         ));
       } catch (error) {
+        console.error('Error in handleDragEnd:', error);
         toast({
           variant: 'destructive',
           title: 'Error',

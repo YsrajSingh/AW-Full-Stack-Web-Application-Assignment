@@ -1,11 +1,20 @@
 const jwt = require('jsonwebtoken');
 
 const generateAccessToken = (user) => {
-  return jwt.sign(user.toObject(), process.env.JWT_SECRET, { expiresIn: '1d' }); // TODO set to 15 minutes
+  const tokenPayload = {
+    _id: user._id,
+    email: user.email,
+    name: user.name
+  };
+  return jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: '2d' });
 };
 
 const generateRefreshToken = (user) => {
-  return jwt.sign(user.toObject(), process.env.REFRESH_TOKEN_SECRET, { expiresIn: '30d' });
+  const tokenPayload = {
+    _id: user._id,
+    email: user.email
+  };
+  return jwt.sign(tokenPayload, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '30d' });
 };
 
 module.exports = {

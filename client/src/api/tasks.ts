@@ -5,10 +5,11 @@ export type Task = {
   name: string;
   description: string;
   status: 'Pending' | 'Completed' | 'Done';
+  userId: string;
   createdAt: string;
 };
 
-// Description: Get all tasks
+// Description: Get all tasks for the authenticated user
 // Endpoint: GET /api/tasks
 // Request: {}
 // Response: { tasks: Task[] }
@@ -39,10 +40,17 @@ export const createTask = async (data: { name: string; description: string }) =>
 // Request: { status: 'Pending' | 'Completed' | 'Done' }
 // Response: { task: Task }
 export const updateTaskStatus = async (id: string, status: Task['status']) => {
+  console.log(`Attempting to update task ${id} to status ${status}`);
   try {
-    const response = await api.patch(`/api/tasks/${id}/status`, { status });
+    const response = await api.put(`/api/tasks/${id}/status`, { status });
+    console.log('Update task response:', response.data);
     return response.data;
   } catch (error) {
+    console.error('Error updating task status:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
+    });
     throw new Error(error?.response?.data?.error || error.message);
   }
 };
