@@ -8,6 +8,8 @@ const basicRoutes = require("./routes/index");
 const authRoutes = require("./routes/authRoutes");
 const { connectDB } = require("./config/database");
 const cors = require("cors");
+const passport = require('./config/passport');
+const googleAuthRoutes = require('./routes/googleAuthRoutes');
 
 if (!process.env.DATABASE_URL) {
   console.error("Error: DATABASE_URL variables in .env missing.");
@@ -32,6 +34,8 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use(passport.initialize());
+
 // Authentication routes
 app.use(authRoutes);
 
@@ -47,6 +51,7 @@ app.on("error", (error) => {
 app.use(basicRoutes);
 // Authentication Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/auth', googleAuthRoutes);
 // Task Routes
 app.use('/api/tasks', require('./routes/taskRoutes'));
 // Post Routes

@@ -1,108 +1,119 @@
-# Full Stack Web Application
+```markdown
+# Affworld Assignment
 
-Full Stack Web Application is a web application designed to provide basic user authentication, a task management system, and a feed for users to post content. The project is evaluated based on functionality, design, and code quality.
+Affworld Assignment is a web application designed to provide user authentication, task management, and content feed functionalities. The project is evaluated based on its functionality, design, and code quality.
 
 ## Overview
 
-The project is built using the MERN stack (MongoDB, Express.js, React.js, Node.js) and leverages various libraries and tools to enhance functionality and user experience. The frontend is developed using ReactJS with Vite as the development server, and it employs shadcn-ui with Tailwind CSS for styling. The backend is implemented using Express.js, with MongoDB as the database, and Mongoose for object data modeling (ODM).
+The Affworld Assignment is structured into two main parts: the frontend and the backend. The frontend is built using ReactJS with Vite as the development server, and it utilizes the shadcn-ui component library with Tailwind CSS for styling. The backend is implemented using Express.js and MongoDB for the database. The project follows a REST API architecture for communication between the frontend and backend.
+
+### Architecture and Technologies Used
+- **Frontend**:
+  - ReactJS
+  - Vite
+  - shadcn-ui component library
+  - Tailwind CSS
+  - react-router-dom for client-side routing
+  - React DnD or react-beautiful-dnd for drag-and-drop functionality
+
+- **Backend**:
+  - Express.js
+  - MongoDB with Mongoose for database management
+  - JWT for token-based authentication
+  - Cloudinary for image storage
 
 ### Project Structure
+- **Frontend** (`client/` folder):
+  - `components/`: Contains reusable UI components.
+  - `pages/`: Contains page components for routing.
+  - `api/`: Contains API request functions.
+  - `contexts/`: Contains context providers for state management.
+  - `hooks/`: Contains custom hooks.
+  - `App.tsx`: Main React component.
+  - `index.html`: Main HTML entry point.
+  - `vite.config.ts`: Vite configuration.
 
-- **Frontend (`client/`)**
-  - Developed with ReactJS using Vite devserver
-  - Integrated with shadcn-ui component library and Tailwind CSS framework
-  - Client-side routing using `react-router-dom`
-  - Pages and components are organized under `client/src/pages/` and `client/src/components/`
-  - API requests are defined in `client/src/api/` and mocked for frontend implementation
-
-- **Backend (`server/`)**
-  - Built with Express.js implementing REST API endpoints
-  - MongoDB database support with Mongoose
-  - Token-based authentication using bearer access and refresh tokens
-  - User authentication routes and services are defined in `server/routes/auth.js` and `server/services/userService.js`
+- **Backend** (`server/` folder):
+  - `models/`: Contains Mongoose schemas.
+  - `routes/`: Contains route handlers.
+  - `services/`: Contains business logic.
+  - `utils/`: Contains utility functions.
+  - `scripts/`: Contains database seeding scripts.
+  - `server.js`: Main server file.
+  - `.env`: Environment variables.
 
 ## Features
 
-1. **User Authentication**
-   - Register: Users can create an account using their name, email, and password.
-   - Login: Users can log in with their email and password.
-   - Forgot Password: Users can reset their password via email (optional).
-   - Google OAuth (Bonus): Integration for login and registration using Google OAuth (optional).
+### User Authentication (20 Marks)
+- **Register**: Users can create an account using their name, email, and password.
+- **Login**: Users can log in with their email and password.
+- **Forgot Password**: Users can reset their password via email.
+- **Google OAuth (Bonus 5 Marks)**: Optional Google OAuth integration for login and registration.
 
-2. **Task Management System**
-   - Create Task: Users can add tasks with a name and description.
-   - Task Columns: UI divided into three columns (Pending, Completed, Done) with drag-and-drop functionality to move tasks between columns.
-   - Delete Task: Users can delete tasks with a confirmation prompt.
+### Task Management System (50 Marks)
+- **Create Task (10 Marks)**: Users can add tasks with a name and description.
+- **Task Columns (30 Marks)**: Tasks are displayed in three columns (Pending, In Progress, Done) with drag-and-drop functionality.
+- **Delete Task (10 Marks)**: Users can delete tasks with confirmation.
 
-3. **Feed Section**
-   - Users can post content including a photo and a caption.
-   - Uses Cloudinary for storing and retrieving photos.
+### Feed Section (30 Marks)
+- **Post Content**: Users can post content with a photo and caption.
+- **Public Feed**: All posts are public, but the author's name is displayed as "Unknown User" if not provided.
+- **Delete Post**: Only the user who created a post can delete it.
+- **Filter Posts**: Users can filter between public posts and their own posts.
 
 ## Getting Started
 
 ### Requirements
-
-- Node.js (v14.x or later)
-- npm (v6.x or later)
-- MongoDB (v4.x or later)
+- Node.js (>= 14.x)
+- npm (>= 6.x)
+- MongoDB (>= 4.4)
 
 ### Quickstart
 
-1. **Clone the repository:**
+1. **Clone the repository**:
    ```sh
-   git clone https://github.com/YsrajSingh/AW-Full-Stack-Web-Application-Assignment.git
-   cd AW-Full-Stack-Web-Application-Assignment
+   git clone <repository-url>
+   cd affworld-assignment
    ```
 
-2. **Install dependencies:**
+2. **Install dependencies**:
    ```sh
-   # Install frontend dependencies
+   npm install
    cd client
    npm install
-   cd ..
-
-   # Install backend dependencies
-   cd server
+   cd ../server
    npm install
-   cd ..
    ```
 
-3. **Set up environment variables:**
-   - Create a `.env` file in the `server` directory with the following content:
-     ```env
-     PORT=3000
-     MONGODB_URI=<your-mongodb-uri>
-     SESSION_SECRET=<your-session-secret>
-     CLOUDINARY_CLOUD_NAME=<your-cloudinary-cloud-name>
-     CLOUDINARY_API_KEY=<your-cloudinary-api-key>
-     CLOUDINARY_API_SECRET=<your-cloudinary-api-secret>
-     ```
+3. **Set up environment variables**:
+   Create a `.env` file in the `server/` directory with the following content:
+   ```env
+   PORT=3000
+   MONGODB_URI=<your-mongodb-uri>
+   JWT_SECRET=<your-jwt-secret>
+   CLOUDINARY_CLOUD_NAME=<your-cloudinary-cloud-name>
+   CLOUDINARY_API_KEY=<your-cloudinary-api-key>
+   CLOUDINARY_API_SECRET=<your-cloudinary-api-secret>
+   ```
 
-4. **Seed the database:**
+4. **Seed the database**:
    ```sh
-   # Seed admin user
-   cd server
-   node scripts/seedAdmin.js
-   cd ..
-
-   # Seed tasks
-   cd server
-   node scripts/seedTasks.js
-   cd ..
+   node server/scripts/seedAdmin.js
+   node server/scripts/seedTasks.js
    ```
 
-5. **Run the application:**
+5. **Run the application**:
    ```sh
    npm run start
    ```
 
-   This command will concurrently run both the frontend and backend servers.
-
-6. **Access the application:**
-   - Frontend: Open your browser and navigate to `http://localhost:5173`
-   - Backend: The server runs on `http://localhost:3000`
+   The frontend will be running on `http://localhost:5173` and the backend on `http://localhost:3000`.
 
 ### License
 
-The project is proprietary (not open source).  
-Copyright (c) 2024.
+The project is proprietary (not open source). 
+
+```
+© 2024. All rights reserved.
+```
+```

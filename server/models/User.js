@@ -41,6 +41,10 @@ const schema = new mongoose.Schema({
   },
   passwordResetExpires: {
     type: Date
+  },
+  googleId: {
+    type: String,
+    sparse: true
   }
 }, {
   versionKey: false,
