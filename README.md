@@ -1,4 +1,3 @@
-```markdown
 # Affworld Assignment
 
 Affworld Assignment is a web application designed to provide user authentication, task management, and content feed functionalities. The project is evaluated based on its functionality, design, and code quality.
@@ -115,5 +114,4 @@ The project is proprietary (not open source).
 
 ```
 © 2024. All rights reserved.
-```
 ```
