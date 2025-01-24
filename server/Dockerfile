@@ -7,8 +7,7 @@ RUN apt-get update && apt-get install -y \
     python3 \
     && rm -rf /var/lib/apt/lists/*
 
-# Environment variables
-ENV NODE_ENV=production
+# Set environment variables
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 
 # Copy package files and install
@@ -22,5 +21,11 @@ COPY . .
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
     CMD node healthcheck.js
 
+# Use .env file for environment variables
+RUN npm install dotenv-cli -g
+
+# Expose port
 EXPOSE 5000
-CMD ["npm", "start"]
+
+# Start the application with .env loaded
+CMD ["dotenv", "-e", "/app/.env", "npm", "start"]
