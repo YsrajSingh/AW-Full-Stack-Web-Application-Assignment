@@ -1,12 +1,14 @@
 const express = require('express');
-const UserService = require('../services/userService.js');
-const { requireUser } = require('./middleware/auth.js');
-const { generateAccessToken, generateRefreshToken } = require('../utils/auth.js');
+const UserService = require('../services/userService');
+const { generateAccessToken, generateRefreshToken } = require('../utils/auth');
 const jwt = require('jsonwebtoken');
-const { sendEmail } = require('../utils/email.js');
+const { sendEmail } = require('../utils/email');
+const User = require('../models/User');
+const passport = require('passport');
 
 const router = express.Router();
 
+// Login with email and password
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
@@ -15,7 +17,6 @@ router.post('/login', async (req, res) => {
   }
 
   const user = await UserService.authenticateWithPassword(email, password);
-
   if (user) {
     if (user.authMethod === 'google') {
       return res.status(400).json({ message: 'This account was registered via Google. Please log in using Google.' });
@@ -24,7 +25,6 @@ router.post('/login', async (req, res) => {
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
     user.refreshToken = refreshToken;
-
     await user.save();
 
     return res.json({
@@ -36,204 +36,72 @@ router.post('/login', async (req, res) => {
   }
 });
 
-
+// Register user via email or Google
 router.post('/register', async (req, res) => {
   try {
     const { email, password, authMethod } = req.body;
 
-    // Check if email already exists for the provided authentication method
-    const existingUser = await UserService.getByEmail(email);
-
-    if (existingUser) {
-      if (existingUser.authMethod === 'google' && authMethod === 'email') {
-        return res.status(400).json({ message: 'This email is registered with Google login. Please use Google login.' });
-      } else if (existingUser.authMethod === 'email' && authMethod === 'google') {
-        return res.status(400).json({ message: 'This email is registered with email/password login. Please use email/password login.' });
-      }
-      return res.status(400).json({ message: 'This email is already registered. Please log in.' });
-    }
-
-    // If registration is via email/password
-    const newUser = new User({
+    const newUser = await UserService.create({
       email,
       password,
       authMethod: 'email',
     });
 
-    if (authMethod === 'email' && password) {
-      newUser.password = password; // Save the password if it's email registration
-    }
+    const accessToken = generateAccessToken(newUser);
+    const refreshToken = generateRefreshToken(newUser);
+    newUser.refreshToken = refreshToken;
 
     await newUser.save();
-    return res.status(201).json({ message: 'User registered successfully.' });
-
+    res.status(201).json({
+      message: 'User registered successfully.',
+      accessToken,
+      refreshToken,
+    });
   } catch (error) {
-    console.error('Error while registering user: ', error);
-    return res.status(400).json({ message: 'Registration failed.' });
+    return res.status(400).json({ message: error.message });
   }
 });
 
-router.post('/logout', requireUser, async (req, res) => {
+// Logout user
+router.post('/logout', async (req, res) => {
   try {
-    console.log(`Attempting to logout user: ${req.user._id}`);
-    const user = await UserService.get(req.user._id);
-    if (!user) {
-      console.error(`User not found for ID: ${req.user._id}`);
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    // Invalidate refresh token
+    const { user } = req;
     user.refreshToken = null;
     await user.save();
-    console.log(`Successfully logged out user: ${req.user._id}`);
-
-    res.status(200).json({ success: true, message: 'Logged out successfully' });
+    res.status(200).json({ message: 'Logged out successfully' });
   } catch (error) {
-    console.error('Logout error:', error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: 'Error logging out' });
   }
 });
 
-router.post('/refresh', async (req, res) => {
-  const { refreshToken } = req.body;
-
-  if (!refreshToken) {
-    return res.status(401).json({
-      success: false,
-      message: 'Refresh token is required'
-    });
-  }
-
-  try {
-    // Verify the refresh token
-    const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
-
-    // Find the user
-    const user = await UserService.get(decoded._id);
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
-    }
-
-    if (user.refreshToken !== refreshToken) {
-      return res.status(403).json({
-        success: false,
-        message: 'Invalid refresh token'
-      });
-    }
-
-    // Generate new tokens
-    const newAccessToken = generateAccessToken(user);
-    const newRefreshToken = generateRefreshToken(user);
-
-    // Update user's refresh token in database
-    user.refreshToken = newRefreshToken;
-    await user.save();
-
-    // Return new tokens
-    return res.status(200).json({
-      success: true,
-      data: {
-        accessToken: newAccessToken,
-        refreshToken: newRefreshToken
-      }
-    });
-
-  } catch (error) {
-    console.error(`Token refresh error: ${error.message}`);
-
-    if (error.name === 'TokenExpiredError') {
-      return res.status(403).json({
-        success: false,
-        message: 'Refresh token has expired'
-      });
-    }
-
-    return res.status(403).json({
-      success: false,
-      message: 'Invalid refresh token'
-    });
-  }
-});
-
-router.get('/me', requireUser, async (req, res) => {
-  return res.status(200).json(req.user);
-});
-
+// Password reset logic
 router.post('/forgot-password', async (req, res) => {
-  try {
-    console.log('Received forgot password request');
-    const { email } = req.body;
-    
-    if (!email) {
-      throw new Error('Email is required');
-    }
+  const { email } = req.body;
+  const resetToken = await UserService.createPasswordResetToken(email);
+  const resetURL = `${req.protocol}://localhost:5173/reset-password/${resetToken}`;
 
-    const resetToken = await UserService.createPasswordResetToken(email);
-    console.log(`Generated reset token for email: ${email}`);
+  await sendEmail({
+    to: email,
+    subject: 'Reset Your Password',
+    text: `Click the following link to reset your password: ${resetURL}`,
+  });
 
-    const resetURL = `${req.protocol}://localhost:5173/reset-password/${resetToken}`;
-
-    await sendEmail({
-      to: email,
-      subject: 'Your password reset token (valid for 30 min)',
-      text: `Forgot your password? Submit a PATCH request with your new password to: ${resetURL}.\nIf you didn't forget your password, please ignore this email!`,
-      html: `
-        <p>Forgot your password?</p>
-        <p>Click <a href="${resetURL}">here</a> to reset your password.</p>
-        <p>If you didn't forget your password, please ignore this email!</p>
-      `
-    });
-    console.log(`Reset password email sent to: ${email}`);
-
-    res.status(200).json({
-      status: 'success',
-      message: 'Token sent to email!'
-    });
-  } catch (error) {
-    console.error('Forgot password error:', error);
-    res.status(400).json({
-      status: 'error',
-      message: error.message
-    });
-  }
+  res.status(200).json({ message: 'Password reset email sent!' });
 });
 
 router.post('/reset-password/:token', async (req, res) => {
-  try {
-    console.log('Received password reset request');
-    const { password } = req.body;
-    const { token } = req.params;
+  const { password } = req.body;
+  const { token } = req.params;
+  const user = await UserService.resetPassword(token, password);
 
-    if (!password) {
-      throw new Error('New password is required');
-    }
+  const accessToken = generateAccessToken(user);
+  const refreshToken = generateRefreshToken(user);
 
-    if (!token) {
-      throw new Error('Reset token is required');
-    }
-
-    const user = await UserService.resetPassword(token, password);
-    console.log(`Password reset successful for user: ${user._id}`);
-
-    const accessToken = generateAccessToken(user);
-    const refreshToken = generateRefreshToken(user);
-
-    res.status(200).json({
-      status: 'success',
-      accessToken,
-      refreshToken
-    });
-  } catch (error) {
-    console.error('Password reset error:', error);
-    res.status(400).json({
-      status: 'error',
-      message: error.message
-    });
-  }
+  res.status(200).json({
+    accessToken,
+    refreshToken,
+    message: 'Password reset successfully',
+  });
 });
 
 module.exports = router;

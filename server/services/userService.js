@@ -1,13 +1,11 @@
-const { randomUUID } = require('crypto');
 const crypto = require('crypto');
-
-const User = require('../models/User.js');
-const { generatePasswordHash, validatePassword } = require('../utils/password.js');
+const User = require('../models/User');
+const { generatePasswordHash, validatePassword } = require('../utils/password');
 
 class UserService {
   static async list() {
     try {
-      return User.find();
+      return await User.find();
     } catch (err) {
       throw new Error(`Database error while listing users: ${err}`);
     }
@@ -15,7 +13,7 @@ class UserService {
 
   static async get(id) {
     try {
-      return User.findOne({ _id: id }).exec();
+      return await User.findOne({ _id: id }).exec();
     } catch (err) {
       throw new Error(`Database error while getting the user by their ID: ${err}`);
     }
@@ -23,15 +21,15 @@ class UserService {
 
   static async getByEmail(email) {
     try {
-      return User.findOne({ email }).exec();
+      return await User.findOne({ email }).exec();
     } catch (err) {
-      throw new Error(`Database error while getting the user by their email: ${err}`);
+      throw new Error(`Database error while getting the user by email: ${err}`);
     }
   }
 
   static async update(id, data) {
     try {
-      return User.findOneAndUpdate({ _id: id }, data, { new: true, upsert: false });
+      return await User.findOneAndUpdate({ _id: id }, data, { new: true, upsert: false });
     } catch (err) {
       throw new Error(`Database error while updating user ${id}: ${err}`);
     }
@@ -40,7 +38,7 @@ class UserService {
   static async delete(id) {
     try {
       const result = await User.deleteOne({ _id: id }).exec();
-      return (result.deletedCount === 1);
+      return result.deletedCount === 1;
     } catch (err) {
       throw new Error(`Database error while deleting user ${id}: ${err}`);
     }
@@ -51,7 +49,7 @@ class UserService {
     if (!password) throw new Error('Password is required');
 
     try {
-      const user = await User.findOne({email}).exec();
+      const user = await User.findOne({ email }).exec();
       if (!user) return null;
 
       const passwordValid = await validatePassword(password, user.password);
@@ -65,20 +63,26 @@ class UserService {
     }
   }
 
-  static async create({ email, password, name = '' }) {
+  static async create({ email, password, name = '', authMethod }) {
     if (!email) throw new Error('Email is required');
-    if (!password) throw new Error('Password is required');
+    if (!password && authMethod === 'email') throw new Error('Password is required for email registration');
 
     const existingUser = await UserService.getByEmail(email);
-    if (existingUser) throw new Error('User with this email already exists');
+    if (existingUser) {
+      if (existingUser.authMethod !== authMethod) {
+        throw new Error(`This email is already registered with ${existingUser.authMethod}. Please use ${existingUser.authMethod} login.`);
+      }
+      throw new Error('User with this email already exists');
+    }
 
-    const hash = await generatePasswordHash(password);
+    const hash = authMethod === 'email' ? await generatePasswordHash(password) : undefined;
 
     try {
       const user = new User({
         email,
         password: hash,
         name,
+        authMethod,
       });
 
       await user.save();
@@ -90,13 +94,12 @@ class UserService {
 
   static async setPassword(user, password) {
     if (!password) throw new Error('Password is required');
-    user.password = await generatePasswordHash(password); // eslint-disable-line
+    user.password = await generatePasswordHash(password);
 
     try {
       if (!user.isNew) {
         await user.save();
       }
-
       return user;
     } catch (err) {
       throw new Error(`Database error while setting user password: ${err}`);
@@ -110,29 +113,22 @@ class UserService {
         throw new Error('No user found with this email address');
       }
 
-      console.log(`Generating password reset token for user: ${email}`);
-
       const resetToken = crypto.randomBytes(32).toString('hex');
       user.passwordResetToken = crypto
         .createHash('sha256')
         .update(resetToken)
         .digest('hex');
-      user.passwordResetExpires = Date.now() + 30 * 60 * 1000; // 30 minutes
+      user.passwordResetExpires = Date.now() + 30 * 60 * 1000;
 
       await user.save();
-      console.log(`Password reset token generated successfully for user: ${email}`);
-      
       return resetToken;
     } catch (err) {
-      console.error('Error creating password reset token:', err);
-      throw new Error(`Error creating password reset token: ${err.stack}`);
+      throw new Error(`Error creating password reset token: ${err}`);
     }
   }
 
   static async resetPassword(token, newPassword) {
     try {
-      console.log('Attempting to reset password with token');
-      
       const hashedToken = crypto
         .createHash('sha256')
         .update(token)
@@ -140,27 +136,21 @@ class UserService {
 
       const user = await User.findOne({
         passwordResetToken: hashedToken,
-        passwordResetExpires: { $gt: Date.now() }
+        passwordResetExpires: { $gt: Date.now() },
       });
 
       if (!user) {
-        console.error('Invalid or expired password reset token');
         throw new Error('Token is invalid or has expired');
       }
 
-      console.log(`Resetting password for user: ${user.email}`);
-      
       await this.setPassword(user, newPassword);
       user.passwordResetToken = undefined;
       user.passwordResetExpires = undefined;
       await user.save();
 
-      console.log(`Password reset successful for user: ${user.email}`);
-      
       return user;
     } catch (err) {
-      console.error('Error resetting password:', err);
-      throw new Error(`Error resetting password: ${err.stack}`);
+      throw new Error(`Error resetting password: ${err}`);
     }
   }
 }
