@@ -42,7 +42,7 @@ export function Register() {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error?.message,
+        description: (error as any)?.message,
       })
     } finally {
       setLoading(false)

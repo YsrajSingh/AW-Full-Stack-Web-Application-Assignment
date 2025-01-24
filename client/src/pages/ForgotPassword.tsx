@@ -36,11 +36,12 @@ export function ForgotPassword() {
       });
       navigate("/login");
     } catch (error) {
+      console.log("Register error:", error)
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message,
-      });
+        description: (error as any)?.message,
+      })
     } finally {
       setLoading(false);
     }

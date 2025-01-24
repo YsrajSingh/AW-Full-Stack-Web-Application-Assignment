@@ -30,11 +30,12 @@ export function Feed() {
       setHasMore(pagination.page < pagination.pages);
       setPage(pagination.page);
     } catch (error) {
+      console.log("Register error:", error)
       toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: error.message,
-      });
+        variant: "destructive",
+        title: "Error",
+        description: (error as any)?.message,
+      })
     } finally {
       setLoading(false);
     }

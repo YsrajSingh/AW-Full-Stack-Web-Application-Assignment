@@ -22,11 +22,12 @@ export function PostCard({ post, onDelete }: PostCardProps) {
       });
       onDelete?.();
     } catch (error) {
+      console.log("Register error:", error)
       toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: error.message,
-      });
+        variant: "destructive",
+        title: "Error",
+        description: (error as any)?.message,
+      })
     }
   };
 

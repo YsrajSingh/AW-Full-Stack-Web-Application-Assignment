@@ -17,7 +17,7 @@ if (!process.env.DATABASE_URL) {
 }
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 5000;
 // Pretty-print JSON responses
 app.enable('json spaces');
 // We want to be consistent with URL paths, so we enable strict routing
@@ -69,6 +69,7 @@ app.use((err, req, res, next) => {
   res.status(500).send("There was an error serving your request.");
 });
 
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
+// Ensure server listens on all interfaces
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Server running on http://0.0.0.0:${port}`);
 });

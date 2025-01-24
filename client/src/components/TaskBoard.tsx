@@ -1,9 +1,5 @@
 import { useState, useEffect } from 'react';
 import { DndContext, DragEndEvent, closestCenter } from '@dnd-kit/core';
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
 import { TaskColumn } from './TaskColumn';
 import { TaskDialog } from './TaskDialog';
 import { Button } from './ui/button';
@@ -25,11 +21,12 @@ export function TaskBoard() {
       const { tasks } = await getTasks();
       setTasks(tasks);
     } catch (error) {
+      console.log("Register error:", error)
       toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: error.message,
-      });
+        variant: "destructive",
+        title: "Error",
+        description: (error as any)?.message,
+      })
     }
   };
 
@@ -59,11 +56,12 @@ export function TaskBoard() {
         ));
       } catch (error) {
         console.error('Error in handleDragEnd:', error);
+        console.log("Register error:", error)
         toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: error.message,
-        });
+          variant: "destructive",
+          title: "Error",
+          description: (error as any)?.message,
+        })
       }
     }
   };

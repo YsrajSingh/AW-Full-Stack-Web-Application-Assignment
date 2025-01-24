@@ -38,10 +38,11 @@ export function Login() {
       })
       navigate("/")
     } catch (error) {
+      console.log("Register error:", error)
       toast({
         variant: "destructive",
         title: "Error",
-        description: error?.message,
+        description: (error as any)?.message,
       })
     } finally {
       setLoading(false)
@@ -100,7 +101,7 @@ export function Login() {
             type="button"
             variant="outline"
             className="w-full"
-            onClick={() => window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/google`}
+            onClick={() => window.location.href = `${import.meta.env.VITE_BACKEND_URL}/api/auth/google`}
           >
             <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
               <path

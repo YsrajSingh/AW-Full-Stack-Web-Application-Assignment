@@ -1,0 +1,13 @@
+# client/.dockerignore
+node_modules
+Dockerfile
+.dockerignore
+build
+*.md
+.git
+# server/.dockerignore
+node_modules
+Dockerfile
+.dockerignore
+*.md
+.git

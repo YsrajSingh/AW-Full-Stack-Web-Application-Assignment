@@ -34,11 +34,12 @@ export function TaskDialog({ open, onOpenChange, onSuccess }: TaskDialogProps) {
       onSuccess(task);
       reset();
     } catch (error) {
+      console.log("Register error:", error)
       toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: error.message,
-      });
+        variant: "destructive",
+        title: "Error",
+        description: (error as any)?.message,
+      })
     }
   };
 

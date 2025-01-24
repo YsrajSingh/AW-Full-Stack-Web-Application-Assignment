@@ -1,6 +1,7 @@
+// @ts-nocheck
 import axios, { AxiosRequestConfig, AxiosError } from 'axios';
 
-const backendURL = 'http://localhost:3000';
+const backendURL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 const api = axios.create({
   baseURL: backendURL,
   headers: {

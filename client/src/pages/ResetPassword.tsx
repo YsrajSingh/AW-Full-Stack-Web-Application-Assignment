@@ -10,7 +10,6 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/useToast";
 import { Key } from "lucide-react";
@@ -26,7 +25,7 @@ export function ResetPassword() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { token } = useParams<{ token: string }>();
-  const { register, handleSubmit, watch } = useForm<ResetPasswordForm>();
+  const { register, handleSubmit } = useForm<ResetPasswordForm>();
 
   const onSubmit = async (data: ResetPasswordForm) => {
     if (data.password !== data.confirmPassword) {
@@ -55,7 +54,7 @@ export function ResetPassword() {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message,
+        description: (error as any).message,
       });
     } finally {
       setLoading(false);

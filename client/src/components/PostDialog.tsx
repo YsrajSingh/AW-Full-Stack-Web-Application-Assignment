@@ -55,11 +55,12 @@ export function PostDialog({ open, onOpenChange, onSuccess }: PostDialogProps) {
       reset();
     } catch (error) {
       console.error('Error in onSubmit:', error);
+      console.log("Register error:", error)
       toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: error.message,
-      });
+        variant: "destructive",
+        title: "Error",
+        description: (error as any)?.message,
+      })
     } finally {
       setIsUploading(false);
     }

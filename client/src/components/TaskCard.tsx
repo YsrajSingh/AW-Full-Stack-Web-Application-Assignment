@@ -46,11 +46,12 @@ export function TaskCard({ task, onDelete }: TaskCardProps) {
         description: 'Task deleted successfully',
       });
     } catch (error) {
+      console.log("Register error:", error)
       toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: error.message,
-      });
+        variant: "destructive",
+        title: "Error",
+        description: (error as any)?.message,
+      })
     }
   };
 
