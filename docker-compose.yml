@@ -4,7 +4,7 @@ services:
       context: ./client
       dockerfile: Dockerfile
       args:
-        - VITE_BACKEND_URL=http://aw.api.yashrajs.com
+        - VITE_BACKEND_URL=https://aw.api.yashrajs.com
     ports:
       - "3000:3000"
     networks:
