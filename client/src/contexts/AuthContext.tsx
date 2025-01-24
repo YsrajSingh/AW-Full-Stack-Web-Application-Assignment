@@ -1,5 +1,4 @@
-
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { login as apiLogin, register as apiRegister } from "@/api/auth";
 
 type AuthContextType = {
@@ -12,23 +11,31 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return !!localStorage.getItem("accessToken");
-  });
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+
+  // Use useEffect to check authentication status after the component mounts
+  useEffect(() => {
+    const accessToken = localStorage.getItem("accessToken");
+    if (accessToken) {
+      setIsAuthenticated(true);
+    }
+  }, []);
 
   const login = async (email: string, password: string) => {
     try {
       const response = await apiLogin(email, password);
-      if (response?.refreshToken || response?.accessToken) {
-        localStorage.setItem("refreshToken", response.refreshToken);
+      if (response?.accessToken && response?.refreshToken) {
+        // Save tokens to localStorage
         localStorage.setItem("accessToken", response.accessToken);
+        localStorage.setItem("refreshToken", response.refreshToken);
         setIsAuthenticated(true);
       } else {
-        throw new Error(error?.response?.data?.message || 'Login failed');
+        throw new Error('Login failed: Invalid response from server');
       }
-    } catch (error) {
-      localStorage.removeItem("refreshToken");
+    } catch (error: any) {
+      // Clear tokens on error
       localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
       setIsAuthenticated(false);
       throw new Error(error?.message || 'Login failed');
     }
@@ -37,17 +44,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = async (email: string, password: string) => {
     try {
       const response = await apiRegister(email, password);
-    } catch (error) {
-      localStorage.removeItem("refreshToken");
+      if (response?.accessToken && response?.refreshToken) {
+        // Optionally handle auto-login after registration
+        localStorage.setItem("accessToken", response.accessToken);
+        localStorage.setItem("refreshToken", response.refreshToken);
+        setIsAuthenticated(true);
+      }
+    } catch (error: any) {
+      // Clear tokens on error
       localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
       setIsAuthenticated(false);
       throw new Error(error?.message || 'Registration failed');
     }
   };
 
   const logout = () => {
-    localStorage.removeItem("refreshToken");
+    // Remove tokens and update authentication state
     localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
     setIsAuthenticated(false);
   };
 

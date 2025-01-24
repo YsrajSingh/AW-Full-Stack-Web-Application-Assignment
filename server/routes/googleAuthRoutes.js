@@ -1,6 +1,7 @@
 const express = require('express');
 const passport = require('passport');
 const { generateAccessToken, generateRefreshToken } = require('../utils/auth');
+const UserService = require('../services/userService');
 
 const router = express.Router();
 
@@ -10,14 +11,23 @@ router.get('/google',
 
 router.get('/google/callback',
   passport.authenticate('google', { session: false }),
-  (req, res) => {
+  async (req, res) => {
     try {
+      // Check if the user is already registered with email/password
+      const existingUser = await UserService.getByEmail(req.user.email);
+
+      if (existingUser) {
+        if (existingUser.authMethod === 'email') {
+          return res.redirect(`${process.env.CLIENT_URL}/login?error=This email is registered with email/password. Please use email/password login.`);
+        }
+      }
+
+      // Handle the Google login and store refresh tokens
       const accessToken = generateAccessToken(req.user);
       const refreshToken = generateRefreshToken(req.user);
-
-      // Store refresh token
       req.user.refreshToken = refreshToken;
-      req.user.save();
+      req.user.authMethod = 'google';
+      await req.user.save();
 
       // Redirect to frontend with tokens
       res.redirect(`${process.env.CLIENT_URL}/oauth/callback?accessToken=${accessToken}&refreshToken=${refreshToken}`);

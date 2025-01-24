@@ -8,38 +8,68 @@ const { sendEmail } = require('../utils/email.js');
 const router = express.Router();
 
 router.post('/login', async (req, res) => {
-  const sendError = msg => res.status(400).json({ message: msg });
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return sendError('Email and password are required');
+    return res.status(400).json({ message: 'Email and password are required' });
   }
 
   const user = await UserService.authenticateWithPassword(email, password);
 
   if (user) {
+    if (user.authMethod === 'google') {
+      return res.status(400).json({ message: 'This account was registered via Google. Please log in using Google.' });
+    }
+
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
-
     user.refreshToken = refreshToken;
-    await user.save();
-    return res.json({...user.toObject(), accessToken});
-  } else {
-    return sendError('Email or password is incorrect');
 
+    await user.save();
+
+    return res.json({
+      ...user.toObject(),
+      accessToken,
+    });
+  } else {
+    return res.status(400).json({ message: 'Email or password is incorrect' });
   }
 });
 
-router.post('/register', async (req, res, next) => {
-  if (req.user) {
-    return res.json({ user: req.user });
-  }
+
+router.post('/register', async (req, res) => {
   try {
-    const user = await UserService.create(req.body);
-    return res.status(200).json(user);
+    const { email, password, authMethod } = req.body;
+
+    // Check if email already exists for the provided authentication method
+    const existingUser = await UserService.getByEmail(email);
+
+    if (existingUser) {
+      if (existingUser.authMethod === 'google' && authMethod === 'email') {
+        return res.status(400).json({ message: 'This email is registered with Google login. Please use Google login.' });
+      } else if (existingUser.authMethod === 'email' && authMethod === 'google') {
+        return res.status(400).json({ message: 'This email is registered with email/password login. Please use email/password login.' });
+      }
+      return res.status(400).json({ message: 'This email is already registered. Please log in.' });
+    }
+
+    // If registration is via email/password
+    const newUser = new User({
+      email,
+      password,
+      authMethod: 'email',
+    });
+
+    if (authMethod === 'email' && password) {
+      newUser.password = password; // Save the password if it's email registration
+    }
+
+    await newUser.save();
+    return res.status(201).json({ message: 'User registered successfully.' });
+
   } catch (error) {
-    console.error(`Error while registering user: ${error}`);
-    return res.status(400).json({ error });
+    console.error('Error while registering user: ', error);
+    return res.status(400).json({ message: 'Registration failed.' });
   }
 });
 
