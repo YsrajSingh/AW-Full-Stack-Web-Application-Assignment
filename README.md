@@ -4,7 +4,7 @@ Affworld Assignment is a web application designed to provide user authentication
 
 ## Overview
 
-The Affworld Assignment is structured into two main parts: the frontend and the backend. The frontend is built using ReactJS with Vite as the development server, and it utilizes the shadcn-ui component library with Tailwind CSS for styling. The backend is implemented using Express.js and MongoDB for the database. The project follows a REST API architecture for communication between the frontend and backend.
+The Affworld Assignment is divided into two main parts: the frontend and the backend. The frontend is built using **ReactJS** and uses **Vite** as the development server. Styling is handled with **Tailwind CSS** and **shadcn-ui** component library. The backend is implemented using **Express.js** and utilizes **MongoDB** for data storage and management. The application follows a REST API architecture for communication between the frontend and backend.
 
 ### Architecture and Technologies Used
 - **Frontend**:
